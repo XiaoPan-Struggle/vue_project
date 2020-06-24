@@ -12,7 +12,7 @@
         <div class="toggle-button" @click="toggleCollapse">|||</div>
         <!-- 侧边栏区域 -->
         <el-menu class="el-menu" background-color="#545c64" text-color="#fff" active-text-color="#409EFE" unique-opened
-          :collapse-transition='false' :collapse='isCollapse'>
+          :collapse-transition='false' :collapse='isCollapse' router :default-active="activePath">
           <!-- 一级菜单 -->
           <el-submenu :index="item.id + ''" v-for="item in menulist" :key="item.id">
             <!-- 一级菜单内容区域 -->
@@ -21,7 +21,8 @@
               <span>{{item.authName}}</span>
             </template>
             <!-- 二级菜单 -->
-            <el-menu-item :index="subItem.id + ''" v-for="subItem in item.children" :key="subItem.id">
+            <el-menu-item :index="'/' + subItem.path" v-for="subItem in item.children" :key="subItem.id"
+              @click="saveNavState('/' + subItem.path)">
               <!-- 二级菜单内容区域 -->
               <template slot="title">
                 <i class="el-icon-menu"></i>
@@ -46,7 +47,10 @@ export default {
     return {
       // 左侧菜单数据
       menulist: [],
+      // 是否折叠
       isCollapse: false,
+      // 按钮激活状态
+      activePath: '',
       iconsObj: {
         // 125 103 101 102 145
         125: 'iconfont icon-users',
@@ -66,17 +70,22 @@ export default {
     // 获取左侧菜单栏数据
     async getMenuList () {
       const { data: res } = await this.$http.get('menus')
-      console.log(res.data)
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.menulist = res.data
     },
     // 控制左侧菜单栏缩放
     toggleCollapse () {
       this.isCollapse = !this.isCollapse
+    },
+    // 保存链接激活状态
+    saveNavState (activePath) {
+      window.sessionStorage.setItem('activePath', activePath)
+      this.activePath = activePath
     }
   },
   created () {
     this.getMenuList()
+    this.activePath = window.sessionStorage.getItem('activePath')
   }
 }
 </script>
