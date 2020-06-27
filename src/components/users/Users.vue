@@ -72,11 +72,36 @@
               <el-button type="danger" icon="el-icon-delete" round @click="removeUserById(scope.row.id)"></el-button>
               <!-- 权限设置 -->
               <el-tooltip content="权限管理" placement="top" :enterable="false">
-                <el-button type="warning" icon="el-icon-setting" round></el-button>
+                <el-button type="warning" icon="el-icon-setting" round @click="setRole(scope.row)"></el-button>
               </el-tooltip>
             </template>
           </el-table-column>
         </el-table>
+
+        <el-dialog
+          title="权限管理"
+          :visible.sync="roleDialogVisible"
+          width="30%"
+          @close="setRoleDialogClosed">
+          <div>
+            <p>当前的用户：{{userInfo.username}}</p>
+            <p>当前的角色：{{userInfo.role_name}}</p>
+            <p>分配为新的角色：
+              <el-select v-model="selectRoleId" placeholder="请选择">
+                <el-option
+                  v-for="item in rolesList"
+                  :key="item.id"
+                  :label="item.roleName"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+            </p>
+          </div>
+          <span slot="footer" class="dialog-footer">
+            <el-button @click="roleDialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
+          </span>
+        </el-dialog>
 
         <!-- 修改用户区域 -->
         <el-dialog title="修改用户" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
@@ -158,6 +183,14 @@ export default {
       },
       // 修改用户参数
       editForm: {},
+      // 权限管理数据
+      userInfo: {},
+      // 权限对话框显示隐藏
+      roleDialogVisible: false,
+      // 全部角色
+      rolesList: [],
+      // 新分配的角色
+      selectRoleId: '',
       // 添加用户的验证
       addFormRules: {
         username: [{
@@ -304,6 +337,40 @@ export default {
       this.$message.success('删除成功')
       // 删除成功后,重新跟新用户列表
       this.getUserList()
+    },
+    // 权限管理展示角色信息
+    async setRole (userInfo) {
+      // 保存角色数据
+      this.userInfo = userInfo
+      // 发送请求，得到所有角色
+      const { data: res } = await this.$http.get('roles')
+      if (res.meta.status !== 200) {
+        return this.$message.error('获取角色列表失败')
+      }
+      this.rolesList = res.data
+      this.roleDialogVisible = true
+    },
+    // 更新新给予的权限
+    async saveRoleInfo () {
+      // 判断新分配角色的值是否为空
+      if (!this.selectRoleId) {
+        return this.$message.error('请选择要分配的权限')
+      }
+      const { data: res } = await this.$http.put(`users/${this.userInfo.id}/role`, {
+        rid: this.selectRoleId
+      })
+      if (res.meta.status !== 200) {
+        return this.$message.error('更新权限失败')
+      }
+      this.$message.success('更新权限成功')
+      // 重新获取页面
+      this.getUserList()
+      this.roleDialogVisible = false
+    },
+    // 监听关闭事件
+    setRoleDialogClosed () {
+      this.selectRoleId = ''
+      this.userInfo = {}
     }
   }
 }
