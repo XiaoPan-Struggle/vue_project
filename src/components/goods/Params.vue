@@ -255,11 +255,11 @@ export default {
     },
     // 点击按钮，展示修改的对话框
     // eslint-disable-next-line camelcase
-    async showEditDialog (attr_id) {
+    async showEditDialog (attrId) {
       // 查询当前参数的信息
       const { data: res } = await this.$http.get(
         // eslint-disable-next-line camelcase
-        `categories/${this.cateId}/attributes/${attr_id}`,
+        `categories/${this.cateId}/attributes/${attrId}`,
         {
           params: { attr_sel: this.activeName }
         }
@@ -296,7 +296,7 @@ export default {
     },
     // 根据Id删除对应的参数项
     // eslint-disable-next-line camelcase
-    async removeParams (attr_id) {
+    async removeParams (attrId) {
       const confirmResult = await this.$confirm(
         '此操作将永久删除该参数, 是否继续?',
         '提示',
@@ -315,7 +315,7 @@ export default {
       // 删除的业务逻辑
       const { data: res } = await this.$http.delete(
         // eslint-disable-next-line camelcase
-        `categories/${this.cateId}/attributes/${attr_id}`
+        `categories/${this.cateId}/attributes/${attrId}`
       )
 
       if (res.meta.status !== 200) {
